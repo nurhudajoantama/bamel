@@ -1,0 +1,7 @@
+.env
+
+logs.txt
+sent_emails.txt
+
+recipients_data.csv
+template.html
