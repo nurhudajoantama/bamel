@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 import csv
@@ -16,7 +17,7 @@ static_data = {
     's_example': 'example'
 }
 
- # Load environment variables from .env file
+# Load environment variables from .env file
 load_dotenv()
 
 # SMTP server details
@@ -34,9 +35,11 @@ RECIPIENTS_FILE = os.getenv('RECIPIENTS_FILE')
 TEMPLATE_FILE = os.getenv('TEMPLATE_FILE')
 LOG_FILE = os.getenv('LOG_FILE')
 
+
 def main():
     # Initialize
-    logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s %(message)s")
+    logging.basicConfig(filename=LOG_FILE, level=logging.INFO,
+                        format="%(asctime)s %(message)s")
     lock = threading.Lock()
 
     global users_data, sent_emails
@@ -63,7 +66,7 @@ def main():
 
     def send_email(to_email):
         # Check if email has already been sent
-        if(to_email in sent_emails):
+        if (to_email in sent_emails):
             logging.info(f'Email to {to_email} has already been sent!')
             return
 
@@ -80,6 +83,11 @@ def main():
         # Attach HTML message
         message.attach(MIMEText(html, 'html'))
 
+        # Attach files (uncomment if needed)
+        # file_name = users_data[to_email]['files']
+        # with open('attachments/' + file_name, 'rb') as file:
+        #     message.attach(MIMEApplication(file.read(), Name=file_name))
+
         # Connect to SMTP server and send email
         smtp_server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
         smtp_server.login(SMTP_USERNAME, SMTP_PASSWORD)
@@ -94,13 +102,13 @@ def main():
 
         logging.info(f'Email sent to {to_email} successfully!')
 
-
     # Create a thread pool executor to run the send_email function for each recipient concurrently
     with ThreadPoolExecutor() as executor:
         executor.map(send_email, users_data)
 
     logging.info('All emails sent!')
     print('All emails sent!')
+
 
 if __name__ == '__main__':
     main()
